@@ -227,6 +227,49 @@ def datetype(dateString):
     return date
 
 
+FILE_PARSER_MAP = {
+    "DailyEnergyBalanceAnalysis": admie_fileparsers.dailyEnergyBalanceAnalysis_parser
+}
+
+
+class DataFormatter:
+    def __init__(self, fileType: str, basePath: str | Path = ".", exportPath: str | Path = "."):
+        self.data: pd.DataFrame | None = None
+        self.fileType = fileType
+        self.basePath = Path(basePath)
+        self.exportPath = Path(exportPath)
+        self.fileParser = FILE_PARSER_MAP[self.fileType]
+
+    def getFilePaths(self) -> list[Path]:
+        filePaths = []
+        filePaths.extend(
+            list(Path(self.basePath).glob(f'[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_{self.fileType}_01.xls')))
+        filePaths.extend(
+            list(Path(self.basePath).glob(f'[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_{self.fileType}_01.xlsx')))
+        return filePaths
+
+    def loadFiles(self):
+        filePaths = self.getFilePaths()
+        df_list = [self.fileParser(filePath) for filePath in filePaths]
+        self.data = pd.concat(df_list)
+
+    def to_excel(self):
+        if self.data is None:
+            raise TypeError(f"Expected DataFrame, got None instead."
+                            f"Try running self.loadFiles() first.")
+
+        filename = f"{self.fileType}.xlsx"
+        self.data.to_excel(filename)
+
+
+def run_admieDataCollector(startDate, endDate, destDir, fileType, ):
+    admie = AdmieDataCollector(startDate, endDate, destDir, fileType)
+    admie.run()
+    dataForm = DataFormatter(fileType, destDir)
+    dataForm.loadFiles()
+    dataForm.to_excel()
+
+
 if __name__ == "__main__":
     admie = AdmieDataCollector()
     admie.run()
