@@ -270,6 +270,7 @@ def run_admieDataCollector(startDate, endDate, destDir, fileType, ):
     dataForm.to_excel()
 
 
-if __name__ == "__main__":
-    admie = AdmieDataCollector()
-    admie.run()
+# if __name__ == "__main__":
+#     print("main Admie")
+#     # fetch files
+#     run_admieDataCollector()
