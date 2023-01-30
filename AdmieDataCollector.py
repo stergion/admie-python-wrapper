@@ -7,6 +7,36 @@ import time
 import requests
 from tqdm import tqdm
 
+import admie_fileparsers
+
+IMPLEMENTED_FILETYPES = ['DailyEnergyBalanceAnalysis']
+
+ALL_FILETYPES = ['AdhocISPResults', 'CurrentLineOutages', 'CurrentProtectionOutages',
+                 'CurrentSubstationOutages', 'DailyAuctionsSpecificationsATC',
+                 'DailyEnergyBalanceAnalysis',
+                 'DayAheadLoadForecast', 'DayAheadRESForecast', 'DayAheadSchedulingRealTimeDeviations',
+                 'DayAheadSchedulingRequirements', 'DayAheadSchedulingUnitAvailabilities', 'Devit',
+                 'Devnor', 'DispatchSchedulingResults', 'ExPostImbalancePricingResults', 'HVCUSTCONS',
+                 'IMBABE', 'InterconnectionsMaintenanceSchedule', 'IntraDayDispatchSchedulingResults',
+                 'ISP1DayAheadLoadForecast', 'ISP1DayAheadRESForecast', 'ISP1ISPResults',
+                 'ISP1Requirements',
+                 'ISP1UnitAvailabilities', 'ISP2DayAheadLoadForecast', 'ISP2DayAheadRESForecast',
+                 'ISP2ISPResults',
+                 'ISP2Requirements', 'ISP2UnitAvailabilities', 'ISP3IntraDayLoadForecast',
+                 'ISP3IntraDayRESForecast',
+                 'ISP3ISPResults', 'ISP3Requirements', 'ISP3UnitAvailabilities', 'ISP4Requirements',
+                 'ISPWeekAheadLoadForecast', 'LTPTRsNominationsSummary', 'MonthlyLoadForecast',
+                 'MonthlyNTC',
+                 'MonthlySIPResults', 'ProvisionalLineOutages', 'ProvisionalProtectionOutages',
+                 'ProvisionalSubstationOutages', 'RealTimeSCADAImportsExports', 'RealTimeSCADARES',
+                 'RealTimeSCADASystemLoad', 'recovery_cost', 'ReservoirFillingRate', 'RESMV',
+                 'RESMVLVPROD',
+                 'SignificantEvents', 'SYSBOUNDS', 'SystemEstimationsCorrections',
+                 'SystemRealizationSCADA',
+                 'UA_ANALYSIS', 'UnitAvailabilities', 'UnitProduction', 'UnitsMaintenanceSchedule',
+                 'WeekAheadLoadForecast', 'WeekAheadWaterUsageDeclaration', 'YearlyLoadForecast',
+                 'YearlyWaterUsageDeclaration']
+
 
 class AdmieDataCollector:
 
@@ -14,31 +44,7 @@ class AdmieDataCollector:
         # API query variables
         self.baseQueryURL = 'https://www.admie.gr/getOperationMarketFilewRange'
         self.fileInfoURL = 'https://www.admie.gr/getFiletypeInfo'
-        self.all_filetypes = ['AdhocISPResults', 'CurrentLineOutages', 'CurrentProtectionOutages',
-                              'CurrentSubstationOutages', 'DailyAuctionsSpecificationsATC',
-                              'DailyEnergyBalanceAnalysis',
-                              'DayAheadLoadForecast', 'DayAheadRESForecast', 'DayAheadSchedulingRealTimeDeviations',
-                              'DayAheadSchedulingRequirements', 'DayAheadSchedulingUnitAvailabilities', 'Devit',
-                              'Devnor', 'DispatchSchedulingResults', 'ExPostImbalancePricingResults', 'HVCUSTCONS',
-                              'IMBABE', 'InterconnectionsMaintenanceSchedule', 'IntraDayDispatchSchedulingResults',
-                              'ISP1DayAheadLoadForecast', 'ISP1DayAheadRESForecast', 'ISP1ISPResults',
-                              'ISP1Requirements',
-                              'ISP1UnitAvailabilities', 'ISP2DayAheadLoadForecast', 'ISP2DayAheadRESForecast',
-                              'ISP2ISPResults',
-                              'ISP2Requirements', 'ISP2UnitAvailabilities', 'ISP3IntraDayLoadForecast',
-                              'ISP3IntraDayRESForecast',
-                              'ISP3ISPResults', 'ISP3Requirements', 'ISP3UnitAvailabilities', 'ISP4Requirements',
-                              'ISPWeekAheadLoadForecast', 'LTPTRsNominationsSummary', 'MonthlyLoadForecast',
-                              'MonthlyNTC',
-                              'MonthlySIPResults', 'ProvisionalLineOutages', 'ProvisionalProtectionOutages',
-                              'ProvisionalSubstationOutages', 'RealTimeSCADAImportsExports', 'RealTimeSCADARES',
-                              'RealTimeSCADASystemLoad', 'recovery_cost', 'ReservoirFillingRate', 'RESMV',
-                              'RESMVLVPROD',
-                              'SignificantEvents', 'SYSBOUNDS', 'SystemEstimationsCorrections',
-                              'SystemRealizationSCADA',
-                              'UA_ANALYSIS', 'UnitAvailabilities', 'UnitProduction', 'UnitsMaintenanceSchedule',
-                              'WeekAheadLoadForecast', 'WeekAheadWaterUsageDeclaration', 'YearlyLoadForecast',
-                              'YearlyWaterUsageDeclaration']
+        self.all_filetypes = ALL_FILETYPES
         self.downloadedFiles = {'date': [], 'filepath': [], 'description': []}
 
         # Initialize argument parser
