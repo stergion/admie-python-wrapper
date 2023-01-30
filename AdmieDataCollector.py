@@ -204,11 +204,14 @@ class AdmieDataCollector:
 
 # Handle date type arguments
 def datetype(dateString):
-   try:
-      date = datetime.datetime.strptime(dateString, '%Y-%m-%d')  # accept only dates with specific format
-   except:
-      print('Error for value %s. -s/--startDate and -e/--endDate arguments have to follow the format YYYY-MM-DD' % dateString)
-   return date
+    try:
+        date = datetime.datetime.strptime(dateString, '%Y-%m-%d')  # accept only dates with specific format
+    except ValueError:
+        print(
+            'Error for value %s. -s/--startDate and -e/--endDate arguments have to '
+            'follow the format YYYY-MM-DD' % dateString)
+        exit(1)
+    return date
 
 
 if __name__ == "__main__":
