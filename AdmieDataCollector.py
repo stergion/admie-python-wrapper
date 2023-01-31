@@ -4,6 +4,7 @@ import os
 import time
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import requests
 from tqdm import tqdm
@@ -11,6 +12,20 @@ from tqdm import tqdm
 import admie_fileparsers
 
 IMPLEMENTED_FILETYPES = ['DailyEnergyBalanceAnalysis']
+
+FREQ_TO_ALIAS = {
+    "week": 'W',
+    "month": 'M',
+    "quarter": "Q",
+    "year": 'Y',
+}
+
+ALIAS_TO_FREQ = {
+    'W': 'week',
+    'M': "month",
+    'Q': 'quarter',
+    'Y': 'year,'
+}
 
 ALL_FILETYPES = ['AdhocISPResults', 'CurrentLineOutages', 'CurrentProtectionOutages',
                  'CurrentSubstationOutages', 'DailyAuctionsSpecificationsATC',
@@ -235,6 +250,9 @@ FILE_PARSER_MAP = {
 
 class DataFormatter:
     def __init__(self, fileType: str, basePath: str | Path = ".", exportPath: str | Path = "."):
+        self.data_freqAlias = 'D'
+        self.data_freq = 'Day'
+        self.data_aggr = 'sum'
         self.data: pd.DataFrame | None = None
         self.fileType = fileType
         self.basePath = Path(basePath)
@@ -254,22 +272,49 @@ class DataFormatter:
         df_list = [self.fileParser(filePath) for filePath in filePaths]
         self.data = pd.concat(df_list)
 
-    def to_excel(self):
+    def resample(self, freq, aggregation='sum'):
+        if freq in FREQ_TO_ALIAS.keys():
+            _freq = freq
+            _freqAlias = FREQ_TO_ALIAS[freq]
+        elif freq in ALIAS_TO_FREQ.keys():
+            _freqAlias = freq
+            _freq = ALIAS_TO_FREQ[freq]
+        else:
+            raise ValueError(f"freq must be one of {list(FREQ_TO_ALIAS.keys()) + list(ALIAS_TO_FREQ.keys())}")
+
+        if aggregation == 'sum':
+            self.data = self.data.resample(_freqAlias).sum()
+            self.data_aggr = 'sum'
+        elif aggregation == 'mean':
+            self.data = self.data.resample(_freqAlias).mean()
+            self.data_aggr = 'mean'
+        else:
+            raise ValueError(f"freq must be one of ['sum', 'mean']")
+
+        self.data_freq = _freq
+        self.data_freqAlias = _freqAlias
+
+    def plot(self, title=None, save=False, fileName=None, figsize=(10, 6)):
+        ax = self.data.plot(figsize=figsize)
+        ax.set_ylabel('MWh', fontsize='large')
+        title = title if title else f'{self.fileType} {self.data_aggr} over {self.data_freq}'
+        ax.set_title(title, fontsize='xx-large')
+        ax.legend(bbox_to_anchor=(1, 1))
+
+        if save:
+            fileName = f"{self.fileType}.png" if not fileName else fileName
+            plt.savefig(fileName, bbox_inches='tight')
+        else:
+            plt.tight_layout()
+            plt.show()
+
+    def to_excel(self, fileName=None):
         if self.data is None:
             raise TypeError(f"Expected DataFrame, got None instead."
                             f"Try running self.loadFiles() first.")
 
-        filename = f"{self.fileType}.xlsx"
+        filename = f"{self.fileType}.xlsx" if fileName is None else fileName
         self.data.to_excel(filename)
-
-
-def run_admieDataCollector(startDate, endDate, destDir, fileType, ):
-    admie = AdmieDataCollector(startDate, endDate, destDir, fileType)
-    admie.run()
-    dataForm = DataFormatter(fileType, destDir)
-    dataForm.loadFiles()
-    dataForm.to_excel()
-
 
 # if __name__ == "__main__":
 #     print("main Admie")
